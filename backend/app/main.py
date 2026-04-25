@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
-from .api import upload, chat
+from .api import upload, chat, documents
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -43,3 +43,6 @@ app.include_router(upload.router)
 
 # 注册对话路由
 app.include_router(chat.router)
+
+# 注册文档管理检索路由
+app.include_router(documents.router)
