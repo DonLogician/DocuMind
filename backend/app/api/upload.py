@@ -4,6 +4,8 @@ from datetime import datetime
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends
 from app.config import settings
 from app.services.document_parser import parse_document
+from app.utils.text_utils import split_text_into_chunks
+from app.services.vector_service import vector_service
 import aiofiles
 
 router = APIRouter(tags=["文档上传"])
@@ -60,11 +62,21 @@ async def upload_document(file: UploadFile = File(...)):
             "timestamp": datetime.now().isoformat(),
         }
 
-    # 4. 解析文档。
-    # 这里如果处理时间超过 30 秒应转入 BackgroundTasks，但根据需求，这里先进行同步测试：
+    # 4. 解析与向量处理 (在 Day 2 我们将对文本分块然后入库)。
+    # 注: 当处理大型文档(百兆级)时可将下面逻辑交给 FastAPI BackgroundTasks 进行离线处理
     try:
+        # A. 提取纯本文
         raw_text = await parse_document(file_path, ext)
-        # 根据 Day 1，我们只要成功验证了提取到纯文本，这一步算成功完成
+
+        # B. 文本分段
+        chunks = split_text_into_chunks(raw_text, chunk_size=1000, chunk_overlap=200)
+
+        # C. 向量化并持久化到 Chroma (这里加入必要的 Metadata 可在搜索时使用)
+        await vector_service.add_documents(
+            chunks=chunks,
+            metadata={"doc_id": doc_id, "filename": file.filename, "extension": ext},
+        )
+
         return {
             "code": 200,
             "message": "success",
@@ -72,14 +84,15 @@ async def upload_document(file: UploadFile = File(...)):
                 "doc_id": doc_id,
                 "filename": file.filename,
                 "content_length": len(raw_text),
-                "status": "parsed",
-                # 前一百个字符作为验证缩略预览
+                "chunks_count": len(chunks),
+                "status": "embedded",
+                # 前一百个字符作为预览
                 "preview": raw_text[:100] + "..." if len(raw_text) > 100 else raw_text,
             },
             "timestamp": datetime.now().isoformat(),
         }
     except Exception as e:
-        # 解析发生致命错误，删除无效的文档防止积压
+        # 解析或建模发生致命错误，删除无效的文档防止积压
         if os.path.exists(file_path):
             os.remove(file_path)
         return {

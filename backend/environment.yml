@@ -17,6 +17,7 @@ dependencies:
     - aiofiles
     - langchain
     - langchain-community
+    - langchain-text-splitters
     - chromadb
     - unstructured[pdf,md,epub]
     - ebooklib
