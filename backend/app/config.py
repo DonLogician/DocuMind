@@ -10,7 +10,7 @@ class Settings(BaseSettings):
 
     # 文件配置
     UPLOAD_DIR: str = "data/documents"
-    MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
+    MAX_FILE_SIZE: int = 15 * 1024 * 1024  # 15MB
     ALLOWED_EXTENSIONS: List[str] = [".pdf", ".txt", ".epub"]
 
     # AI配置
