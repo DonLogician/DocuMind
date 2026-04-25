@@ -1,0 +1,27 @@
+name: documind
+channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - -i https://mirrors.aliyun.com/pypi/simple/
+    - fastapi
+    - uvicorn[standard]
+    - pydantic
+    - pydantic-settings
+    - python-dotenv
+    - aiofiles
+    - langchain
+    - langchain-community
+    - chromadb
+    - unstructured[pdf,md,epub]
+    - ebooklib
+    - dashscope
+    - sentence-transformers
+    - black
+    - isort
+    - flake8
