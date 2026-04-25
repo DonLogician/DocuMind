@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
-from .api import upload
+from .api import upload, chat
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -41,5 +41,5 @@ async def get_version():
 # 注册文档上传路由
 app.include_router(upload.router)
 
-# 稍后将在这里注册各个路由模块
-# app.include_router(chat.router, prefix="/api")
+# 注册对话路由
+app.include_router(chat.router)
