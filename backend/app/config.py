@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     # AI配置
     TONGYI_API_KEY: str = ""
-    TONGYI_MODEL: str = "qwen-max"
+    TONGYI_MODEL: str = "qwen3.6-plus"
     EMBEDDING_MODEL: str = "BAAI/bge-small-zh-v1.5"
 
     # 向量数据库配置
