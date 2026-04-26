@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+﻿from fastapi import APIRouter, HTTPException
 from datetime import datetime
 from app.models.schemas import ChatRequest, ChatResponse
 from app.services.llm_service import llm_service
@@ -6,31 +6,44 @@ import uuid
 
 router = APIRouter(tags=["对话"])
 
-
-@router.post("/api/chat", summary="基础对话接口")
-async def basic_chat(request: ChatRequest):
+@router.post("/api/chat", summary="对话接口")
+async def chat_endpoint(request: ChatRequest):
     """
-    接收用户输入并调用通义千问大模型进行简单的、不带有上下文记忆的基础问答。
+    如果提供 doc_id ，进行基于文档上下文 RAG 和对话记忆(session_id) 的长会话聊天。
+    否则降级为普通无文档单轮闲聊。
     """
     try:
-        # 获取基础单轮对话回答
-        answer = await llm_service.generate_basic_chat(request.query)
-
-        # 组装返回的 Session ID (基础对话不强需求此 ID，仅作返回演示)
         session_id = request.session_id or str(uuid.uuid4())
+
+        if request.doc_id:
+            # Day 3：文档研讨模式（增强记忆 + 检索 RAG）
+            result = await llm_service.generate_rag_chat(
+                query=request.query, 
+                session_id=session_id, 
+                doc_id=request.doc_id
+            )
+            answer = result["answer"]
+            source_documents = result.get("source_documents", [])
+        else:
+            # 基础单轮闲聊模式
+            answer = await llm_service.generate_basic_chat(request.query)
+            source_documents = []
 
         return {
             "code": 200,
             "message": "success",
-            "data": {"answer": answer, "session_id": session_id},
+            "data": {
+                "answer": answer, 
+                "session_id": session_id,
+                "source_documents": source_documents
+            },
             "timestamp": datetime.now().isoformat(),
         }
 
     except ValueError as ve:
-        # LLM 模型未正确初始化等错误
         return {
             "code": 500,
-            "message": "AI 服务配置有误不可用",
+            "message": "AI 服务配置有误不可用或向量系统异常",
             "details": {"error": str(ve)},
             "timestamp": datetime.now().isoformat(),
         }

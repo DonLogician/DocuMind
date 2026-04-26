@@ -15,8 +15,8 @@ dependencies:
     - pydantic-settings
     - python-dotenv
     - aiofiles
-    - langchain
-    - langchain-community
+    - langchain==0.2.16
+    - langchain-community==0.2.16
     - langchain-text-splitters
     - chromadb
     - unstructured[pdf,md,epub]
