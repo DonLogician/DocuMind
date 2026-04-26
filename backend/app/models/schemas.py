@@ -12,6 +12,14 @@ class ChatRequest(BaseModel):
     )
 
 
+class DeepDiscussRequest(BaseModel):
+    query: str = Field(..., description="用户的深层次研讨指令或问题")
+    session_id: Optional[str] = Field(
+        None, description="研讨会话的ID，用于长期状态跟踪"
+    )
+    doc_id: str = Field(..., description="必须提供的深度研讨目标文档ID")
+
+
 class ChatResponse(BaseModel):
     answer: str = Field(..., description="模型返回的回答")
     session_id: Optional[str] = Field(None, description="会话ID")
