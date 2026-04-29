@@ -33,7 +33,11 @@
             <el-avatar :size="36" v-else icon="UserFilled" />
           </div>
           <div class="message-content">
-            <span v-if="msg.content" class="text">{{ msg.content }}</span>
+            <!-- Assistant: Markdown Rendering -->
+            <div v-if="msg.role === 'assistant' && msg.content" class="markdown-body" v-html="renderMarkdown(msg.content)"></div>
+            <!-- User: Normal Text -->
+            <span v-else-if="msg.content" class="text">{{ msg.content }}</span>
+            
             <div v-if="msg.loading" class="loading-indicator">
               <span class="dot"></span><span class="dot"></span><span class="dot"></span>
             </div>
@@ -103,11 +107,17 @@ import { getDocuments, chat, deepDiscuss } from '../api/index'
 import { Plus, ChatLineRound, UserFilled, Position } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useChatStore } from '../store/chat'
+import { marked } from 'marked'
 
 const chatStore = useChatStore()
 const inputQuery = ref('')
 const sending = ref(false)
 const messagesRef = ref(null)
+
+const renderMarkdown = (text) => {
+  if (!text) return ''
+  return marked.parse(text)
+}
 
 const fetchDocuments = async () => {
   try {
@@ -272,6 +282,7 @@ onMounted(() => {
 }
 .message-row.assistant {
   margin-right: auto;
+  max-width: 90%;
 }
 .message-content {
   padding: 12px 18px;
@@ -287,9 +298,30 @@ onMounted(() => {
   border-top-right-radius: 2px;
 }
 .message-row.assistant .message-content {
-  background-color: #f7f7f7;
+  background-color: transparent;
   color: #333;
-  border-top-left-radius: 2px;
+  padding: 0; 
+  padding-top: 8px; /* 稍微与头像对齐 */
+}
+
+/* Markdown 内部基础样式优化 */
+.markdown-body :deep(p:first-child) {
+  margin-top: 0;
+}
+.markdown-body :deep(p:last-child) {
+  margin-bottom: 0;
+}
+.markdown-body :deep(pre), .markdown-body :deep(code) {
+  background-color: #f6f8fa;
+  border-radius: 6px;
+  font-family: monospace;
+}
+.markdown-body :deep(pre) {
+  padding: 16px;
+  overflow: auto;
+}
+.markdown-body :deep(code) {
+  padding: 0.2em 0.4em;
 }
 
 /* Input Area */

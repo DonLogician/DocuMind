@@ -1,9 +1,13 @@
 import { defineStore } from 'pinia'
 
+// 从 localStorage 恢复会话记录
+const savedSessions = JSON.parse(localStorage.getItem('documind_sessions') || '[]')
+const savedCurrentId = localStorage.getItem('documind_current_id') || null
+
 export const useChatStore = defineStore('chat', {
     state: () => ({
-        sessions: [], // List of sessions: { id, title, messages: [] }
-        currentSessionId: null,
+        sessions: savedSessions, // List of sessions: { id, title, messages: [] }
+        currentSessionId: savedCurrentId,
         selectedDoc: null,
         useDeepDiscuss: false,
         documents: [],
@@ -16,6 +20,10 @@ export const useChatStore = defineStore('chat', {
         }
     },
     actions: {
+        _saveToLocal() {
+            localStorage.setItem('documind_sessions', JSON.stringify(this.sessions))
+            localStorage.setItem('documind_current_id', this.currentSessionId || '')
+        },
         setDocuments(docs) {
             this.documents = docs
         },
@@ -28,10 +36,12 @@ export const useChatStore = defineStore('chat', {
             })
             this.currentSessionId = newId
             this.currentReferences = []
+            this._saveToLocal()
         },
         switchSession(id) {
             this.currentSessionId = id
             this.currentReferences = [] // clear refs on switch
+            this._saveToLocal()
         },
         addMessage(message) {
             if (!this.currentSessionId) {
@@ -42,6 +52,7 @@ export const useChatStore = defineStore('chat', {
             if (this.currentSession.messages.length === 1 && message.role === 'user') {
                 this.currentSession.title = message.content.substring(0, 15) + (message.content.length > 15 ? '...' : '')
             }
+            this._saveToLocal()
         },
         updateLastMessage(content, sourceDocs = []) {
             if (this.currentSession && this.currentSession.messages.length > 0) {
@@ -50,11 +61,13 @@ export const useChatStore = defineStore('chat', {
                 lastMsg.content = content
             }
             this.currentReferences = sourceDocs || []
+            this._saveToLocal()
         },
         updateSessionIdFromServer(realSessionId) {
             if (!this.currentSession) return
             this.currentSession.id = realSessionId
             this.currentSessionId = realSessionId
+            this._saveToLocal()
         }
     }
 })
