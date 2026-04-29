@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     MAX_HISTORY_LENGTH: int = 10
     SUMMARY_LENGTH: int = 200
 
+    # HuggingFace 端点配置
+    HF_ENDPOINT: str = "https://huggingface.co"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

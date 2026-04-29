@@ -1,3 +1,8 @@
+import os
+
+# 设置 HuggingFace 国内镜像，解决词表下载的网络超时问题
+os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
